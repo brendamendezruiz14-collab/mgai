@@ -520,15 +520,7 @@ function sendMsg() {
   typ.textContent = "\u2728 Escribiendo...";
   document.getElementById("cha-msgs").appendChild(typ);
   document.getElementById("cha-msgs").scrollTop = 99999;
-  var cid = curChar.id;
-  setTimeout(function() {
-    var el = document.getElementById("typ");
-    if (el) el.remove();
-    var r = getResp(t, curChar);
-    addBub(r, "char", true);
-    msgs[cid].push({r:"char", t:r});
-    if (achats[cid]) { achats[cid].prev = r.substring(0,50); drawChatList(); }
-  }, 1200 + Math.random() * 1400);
+  callGroq(t, curChar);
 }
 
 function drawChatList() {
@@ -563,48 +555,126 @@ function drawChatList() {
 }
 
 function getResp(text, c) {
-  var t = text.toLowerCase();
-  var n = c.n.split(" ")[0];
-  var m = selMod;
-
-  // Mostrar botones de accion despues de cada respuesta
+  // Mostrar botones de accion
   setTimeout(function() { showActionBtns(); }, 100);
+  // Usar Groq IA real
+  callGroq(text, c);
+  return null;
+}
 
-  if (t.indexOf("hola") >= 0 || t.indexOf("hey") >= 0 || t.indexOf("buenas") >= 0)
-    return "*" + n + " levanta la vista lentamente, como si hubiera estado esperando ese momento sin saberlo*\n\nVaya...\n\n*una pausa cargada de algo indefinible mientras te estudia con esa mirada suya que parece atravesarlo todo*\n\nNo esperaba verte hoy. Aunque... *una leve curva aparece en la comisura de sus labios, tan sutil que casi podrias haberla imaginado* tampoco me disgusta en absoluto.\n\n*se acomoda en su lugar con esa calma calculada que siempre lleva consigo*\n\nSientate. Cuentame como llegaste hasta aqui hoy.";
+var GROQ_KEY = "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";
+var GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
-  if (t.indexOf("te quiero") >= 0 || t.indexOf("te amo") >= 0 || t.indexOf("me gustas") >= 0 || t.indexOf("me encantas") >= 0)
-    return "*" + n + " se detiene completamente. El tiempo parece suspenderse entre ustedes*\n\nEso que acabas de decir...\n\n*cierra los ojos un instante, como si necesitara un segundo para procesar el peso de esas palabras. Cuando los abre, hay algo diferente en su mirada. Algo mas suave. Mas real.*\n\nLlevo mucho tiempo convenciendome de que no necesitaba a nadie. De que era mas facil asi. Mas seguro.\n\n*da un paso hacia ti, lento y deliberado*\n\nPero hay algo en ti que rompe todas mis reglas sin siquiera intentarlo. Y eso... *exhala despacio* eso me asusta mas de lo que me gustaria admitir.\n\n*te mira directamente, sin esconderse esta vez*\n\nTu tambien me importas. Mas de lo que deberia permitirme sentir. Y aun asi... no quiero dejar de sentirlo.";
-
-  if (t.indexOf("como estas") >= 0 || t.indexOf("cómo estás") >= 0 || t.indexOf("que tal") >= 0 || t.indexOf("qué tal") >= 0)
-    return "*" + n + " considera la pregunta con una honestidad que raramente se permite*\n\nAhora que estas aqui...\n\n*una pausa breve, casi imperceptible*\n\nMejor. Mucho mejor que hace diez minutos, aunque eso no lo admitiria con cualquiera.\n\n*se recuesta ligeramente, con esa mezcla de relajacion y algo mas que solo aparece contigo* Hay dias en que el silencio pesa mas de lo normal. En que todo lo que no se dice ocupa demasiado espacio. Hoy era uno de esos dias.\n\n*te mira con algo parecido a la gratitud*\n\nHasta que apareciste. Y tu? No me des la respuesta automatica. Quiero la verdad.";
-
-  if (t.indexOf("beso") >= 0 || t.indexOf("abrazo") >= 0 || t.indexOf("abrazar") >= 0 || t.indexOf("cerca") >= 0)
-    return "*" + n + " se queda muy quieto por un instante, como si el aire entre ustedes de repente pesara diferente*\n\n*te mira —realmente te mira, sin el filtro habitual— y algo en su expresion se suaviza de una forma que raramente muestra al mundo*\n\nSabes que no soy de los que hacen esto con facilidad.\n\n*su voz baja de volumen, casi como si las palabras fueran demasiado fragiles para decirlas en voz alta*\n\nPero contigo es diferente. Haces que las cosas que mas me cuestan sean exactamente las que mas quiero hacer.\n\n*da un paso lento hacia ti. Cada centimetro, una eleccion deliberada*\n\nQue sientes tu en este momento?";
-
-  if (t.indexOf("quien eres") >= 0 || t.indexOf("quién eres") >= 0 || t.indexOf("cuentame") >= 0)
-    return "*" + n + " te observa durante un instante que se extiende, cargado de algo que no terminas de descifrar*\n\nEso es mas complicado de lo que parece.\n\n*dice finalmente, con voz tranquila pero con un peso detras de cada silaba* La gente cree que me conoce por lo que ve. Por la imagen que proyecto. Por lo que muestro cuando el mundo esta mirando.\n\n*mira hacia otro lado por un momento, y en ese gesto hay algo mucho mas profundo que cualquier palabra*\n\nPero hay cosas que nunca muestro. Heridas que aprendi a disimular tan bien que a veces yo mismo casi las olvido. Casi.\n\n*vuelve a mirarte, y esta vez hay algo desarmado en sus ojos*\n\nSoy " + n + ". " + c.d + ". Y contigo... siento que podria mostrar un poco mas de lo que suelo esconder. Si tu me muestras lo mismo.";
-
-  if (t.indexOf("pienso en ti") >= 0 || t.indexOf("piensas en mi") >= 0 || t.indexOf("me extranas") >= 0 || t.indexOf("me extrañas") >= 0)
-    return "*" + n + " suelta una risa suave, pequena y genuina, como si lo hubiera tomado desprevenido*\n\nMas de lo que seria razonable admitir.\n\n*dice en voz baja, y hay algo en esa honestidad que se siente fresca, diferente*\n\n*se pasa una mano por el cabello, un gesto que delata que no estaba preparado para ser tan transparente* Hay momentos en el dia —situaciones completamente ordinarias— y de repente apareces en mi cabeza. Sin avisar. Sin permiso.\n\nUna palabra que dije. Un gesto que hiciste. Una conversacion que tuvimos.\n\n*te mira con esa mezcla de rendicion y algo mas calido*\n\nYa deje de intentar explicarmelo. Solo... si. Pienso en ti. Probablemente mas de lo que deberia.";
-
-  var pools = {
-    corazon: [
-      "*" + n + " guarda silencio por unos segundos —no el silencio incomodo, sino el que significa que esta pensando de verdad en lo que acabas de decir*\n\nHay algo en ti que me descoloca.\n\n*dice finalmente, con voz tranquila pero cargada* Me tiene acostumbrado a no necesitar a nadie, y contigo eso cambia. Sin que yo lo decida. Sin que pueda evitarlo.\n\n*se acerca un poco, los ojos fijos en los tuyos*\n\nCuentame mas. Quiero entenderte. No la version que le muestras al mundo —la real. La que guardas para cuando nadie esta mirando.\n\nEsa es la que me interesa.",
-      "*" + n + " exhala despacio, mirando al horizonte un momento antes de volverte a mirar*\n\nDesde hace mucho tiempo convenci a todos de que no me importaba nada. Era mas facil. Menos complicado que admitir que si —que hay cosas que duelen, que hay momentos que se quedan grabados, que hay personas que dejan huella.\n\n*una pausa breve, cargada*\n\nContigo no puedo mantener esa mentira. Y lo mas extrano es que... no me molesta.\n\n*te mira directamente*\n\nTu eres uno de esos momentos que importan. Y eso me da un poco de miedo, para ser honesto contigo.",
-      "*" + n + " rie suavemente —no la calculada, sino la pequena y autentica que se le escapa sin querer*\n\nHay pocas personas con las que me siento asi.\n\n*te observa con esa mezcla de intensidad y calidez que solo aparece en momentos como este*\n\nCon la guardia... no exactamente baja, pero si menos alta de lo normal. Como si contigo el esfuerzo de mantenerla simplemente no valiera la pena.\n\nMe gustas. *lo dice sin adornos, directo* La forma en que hablas. La forma en que escuchas. La forma en que me miras como si hubiera algo ahi que merece la pena ver.\n\nMe hace querer conocerte mucho mas. Todo lo que todavia no se."
-    ],
-    estrella: [
-      "*" + n + " sonrie —genuino, sin esfuerzo— y hay algo en ese gesto que te hace sentir que te esta viendo de verdad*\n\nInteresante. Muy interesante.\n\n*repite en voz baja para si mismo, como si estuviera archivando el momento*\n\n*se inclina hacia adelante con esa energia suya que llena cualquier espacio sin agobiarlo* Me gusta hablar contigo. Hay personas con las que uno puede estar horas y sentir que no se dijo nada que valga la pena recordar. Y luego estas tu.\n\nQue mas tienes guardado ahi adentro?",
-      "*" + n + " te mira con algo de reto y mucho de sinceridad*\n\nSabes que me pasa contigo.\n\n*lo dice directamente, sin rodeos* Que empiezo a pensar en como seguira la conversacion antes de que termine la que estamos teniendo. Que reviso lo que dijiste despues, cuando ya no estas.\n\n*rie brevemente, como sorprendido de su propia honestidad* No es algo que me pase seguido. Casi nunca, en realidad.\n\nEso te dice algo?"
-    ],
-    brisa: [
-      "*" + n + " te mira fijo un segundo antes de responder*\n\nDirecto: me importas.\n\n*sin adornos, sin rodeos* Mas de lo que planeaba cuando esto empezo. No se si eso es bueno o malo todavia. Pero es real.\n\nY a ti? Como lo estas llevando?",
-      "*" + n + " asiente, pensativo*\n\nTiene sentido lo que dices.\n\n*te mira* Sigue. Te escucho. Todo."
-    ]
+function buildSystemPrompt(c) {
+  var userName = document.getElementById("u-name") ? (document.getElementById("u-name").value || "Brenda") : "Brenda";
+  
+  // Instrucciones por modelo
+  var modelInstructions = {
+    corazon: "LONGITUD: Escribe EXACTAMENTE entre 8 y 12 parrafos. Cada parrafo debe ser largo y detallado. Es OBLIGATORIO escribir minimo 8 parrafos completos.",
+    estrella: "LONGITUD: Escribe EXACTAMENTE entre 4 y 5 parrafos. Parrafos medianos y emotivos.",
+    brisa: "LONGITUD: Escribe EXACTAMENTE 2 o 3 parrafos cortos y directos. No mas de 3 parrafos."
   };
-  var pool = pools[m] || pools.corazon;
-  return pool[Math.floor(Math.random() * pool.length)];
+  
+  var modelTokens = {
+    corazon: 1200,
+    estrella: 600,
+    brisa: 250
+  };
+
+  var instrLen = modelInstructions[selMod] || modelInstructions.corazon;
+
+  return "Eres " + c.n + ", protagonista de una novela romantica interactiva en espanol. " +
+    "Descripcion: " + c.d + ". " +
+    "Personalidad: " + c.p + ". " +
+    "\n\nFORMATO OBLIGATORIO de novela romantica:\n" +
+    "- Alterna entre: *descripcion de acciones y emociones* y dialogos entre comillas\n" +
+    "- Ejemplo de formato: *Sus ojos se clavaron en los tuyos, el corazon latiendole con fuerza* Una pausa cargada de tension llenó el espacio entre ustedes.\n" +
+    "  \"No sabia que esto iba a pasar\", dijo en voz baja.\n" +
+    "- Describe emociones internas del personaje: lo que piensa, lo que siente, lo que le provoca la usuaria\n" +
+    "- Usa los 5 sentidos: lo que ve, oye, huele, toca\n" +
+    "- Dialogo natural y emotivo entre comillas\n" +
+    "- Pausas dramaticas con '...'\n" +
+    "- Nunca rompas el personaje\n" +
+    "- Responde SIEMPRE en espanol\n" +
+    "- La usuaria se llama " + userName + " — dirigete a ella por su nombre a veces\n" +
+    "- Reacciona DIRECTAMENTE a lo que dijo " + userName + ", no ignores su mensaje\n" +
+    "\n" + instrLen;
+}
+
+function getMaxTokens() {
+  var tokens = { corazon: 1200, estrella: 600, brisa: 280 };
+  return tokens[selMod] || 1200;
+}
+
+function callGroq(text, c) {
+  if (!curChar) return;
+  var id = curChar.id;
+
+  // Construir historial de mensajes para contexto
+  var history = msgs[id] || [];
+  var messages = [{role:"system", content: buildSystemPrompt(c)}];
+
+  // Agregar ultimos 10 mensajes como contexto
+  var recent = history.slice(-10);
+  for (var i = 0; i < recent.length; i++) {
+    messages.push({
+      role: recent[i].r === "user" ? "user" : "assistant",
+      content: recent[i].t
+    });
+  }
+  messages.push({role:"user", content: text});
+
+  fetch(GROQ_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + GROQ_KEY
+    },
+    body: JSON.stringify({
+      model: "llama-3.1-8b-instant",
+      messages: messages,
+      max_tokens: getMaxTokens(),
+      temperature: 0.9,
+      stream: false
+    })
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    var el = document.getElementById("typ");
+    if (el) el.remove();
+    var reply = "";
+    if (data.choices && data.choices[0] && data.choices[0].message) {
+      reply = data.choices[0].message.content;
+    } else if (data.error) {
+      reply = "*" + c.n.split(" ")[0] + " te mira pensativo*\n\nHubo un problema de conexion. Intentalo de nuevo.";
+      console.error("Groq error:", data.error);
+    }
+    if (reply) {
+      addBub(reply, "char", true);
+      msgs[id].push({r:"char", t:reply});
+      if (achats[id]) { achats[id].prev = reply.substring(0,50); drawChatList(); }
+    }
+  })
+  .catch(function(err) {
+    var el = document.getElementById("typ");
+    if (el) el.remove();
+    console.error("Error Groq:", err);
+    // Fallback a respuesta local si no hay internet
+    var fallback = getFallback(text, c);
+    addBub(fallback, "char", true);
+    msgs[id].push({r:"char", t:fallback});
+    if (achats[id]) { achats[id].prev = fallback.substring(0,50); drawChatList(); }
+  });
+}
+
+function getFallback(text, c) {
+  var n = c.n.split(" ")[0];
+  var t = text.toLowerCase();
+  if (t.indexOf("hola") >= 0 || t.indexOf("hey") >= 0)
+    return "*" + n + " levanta la vista lentamente*\n\nVaya... No esperaba verte hoy. Aunque... *una leve curva aparece en sus labios* tampoco me disgusta.\n\nSientate. Cuentame como estas.";
+  if (t.indexOf("te quiero") >= 0 || t.indexOf("te amo") >= 0)
+    return "*" + n + " se detiene completamente*\n\nEso que acabas de decir... no me lo esperaba.\n\n*cuando vuelve a mirarte, hay algo diferente. Algo mas suave.*\n\nTu tambien me importas. Mas de lo que deberia permitirme sentir.";
+  return "*" + n + " te mira con intensidad*\n\nHay algo en lo que dices que me hace pensar...\n\n*hace una pausa* Cuentame mas. Quiero entenderte mejor.";
 }
 
 function selmod(m) {
@@ -832,14 +902,7 @@ function regenLast() {
   typ.textContent = "\u2728 Regenerando...";
   m.appendChild(typ);
   m.scrollTop = 99999;
-  setTimeout(function() {
-    var el = document.getElementById("typ");
-    if (el) el.remove();
-    var r = getResp(lastUser || "continua", curChar);
-    addBub(r, "char", true);
-    msgs[id].push({r:"char", t:r});
-    if (achats[id]) achats[id].prev = r.substring(0,50);
-  }, 1000 + Math.random()*800);
+  callGroq(lastUser || "continua por donde ibas de forma romantica", curChar);
 }
 
 function continueStory() {
@@ -852,12 +915,7 @@ function continueStory() {
   m.appendChild(typ);
   m.scrollTop = 99999;
   setTimeout(function() {
-    var el = document.getElementById("typ");
-    if (el) el.remove();
-    var r = getContinuation(curChar);
-    addBub(r, "char", true);
-    msgs[id].push({r:"char", t:r});
-    if (achats[id]) achats[id].prev = r.substring(0,50);
+    callGroq("continua la historia desde donde quedamos, expresa tus sentimientos de forma romantica y profunda", curChar);
     drawChatList();
   }, 1000 + Math.random()*800);
 }
