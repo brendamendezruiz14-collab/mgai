@@ -664,8 +664,8 @@ function getResp(text, c) {
   return null;
 }
 
-var GROQ_KEY = "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";
-var GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+// La clave está protegida en el servidor - no visible aquí
+var GROQ_URL = "/api/chat";
 
 function buildSystemPrompt(c) {
   var userName = document.getElementById("u-name") ? (document.getElementById("u-name").value || "Brenda") : "Brenda";
@@ -729,15 +729,12 @@ function callGroq(text, c) {
   fetch(GROQ_URL, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + GROQ_KEY
+      "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
       messages: messages,
       max_tokens: getMaxTokens(),
-      temperature: 0.9,
-      stream: false
+      model: selMod
     })
   })
   .then(function(res) { return res.json(); })
