@@ -1,29 +1,36 @@
 export default async function handler(req, res) {
+  // Headers CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { messages, max_tokens, model } = req.body;
+    const body = req.body;
+    const messages = body.messages;
+    const model = body.model || 'corazon';
+    
+    const tokenMap = { corazon: 1200, estrella: 600, brisa: 280 };
+    const maxTok = tokenMap[model] || 1200;
 
-    // Tokens según modelo seleccionado
-    const tokens = { corazon: 1200, estrella: 600, brisa: 280 };
-    const maxTok = max_tokens || tokens[model] || 1200;
-
-    // Reforzar instrucciones de longitud en el sistema
-    const lengthInstructions = {
-      corazon: "OBLIGATORIO: Tu respuesta debe tener MINIMO 8 parrafos largos y detallados. Cada parrafo minimo 4 oraciones. Describe emociones, acciones, dialogos. NO puedes escribir menos de 8 parrafos.",
-      estrella: "OBLIGATORIO: Tu respuesta debe tener EXACTAMENTE 4 o 5 parrafos medianos. Cada parrafo minimo 3 oraciones.",
-      brisa: "OBLIGATORIO: Tu respuesta debe tener 2 o 3 parrafos cortos y directos."
+    const lengthMap = {
+      corazon: "OBLIGATORIO: Escribe MINIMO 8 parrafos largos y detallados. Cada parrafo minimo 4 oraciones. Describe emociones, acciones en *asteriscos*, dialogos entre comillas. NO puedes escribir menos de 8 parrafos.",
+      estrella: "OBLIGATORIO: Escribe EXACTAMENTE 4 o 5 parrafos medianos con emociones y dialogos.",
+      brisa: "OBLIGATORIO: Escribe 2 o 3 parrafos cortos y directos."
     };
 
-    // Agregar instrucción de longitud al mensaje del sistema
-    const reinforcedMessages = messages.map((msg, index) => {aa
+    const extra = lengthMap[model] || lengthMap.corazon;
+
+    const finalMessages = messages.map(function(msg) {
       if (msg.role === 'system') {
-        return {
-          ...msg,
-          content: msg.content + '\n\n' + (lengthInstructions[model] || lengthInstructions.corazon)
-        };
+        return { role: 'system', content: msg.content + '\n\n' + extra };
       }
       return msg;
     });
@@ -32,11 +39,11 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.GROQ_KEY}`
+        'Authorization': 'Bearer ' + process.env.GROQ_KEY
       },
       body: JSON.stringify({
         model: 'llama-3.1-8b-instant',
-        messages: reinforcedMessages,
+        messages: finalMessages,
         max_tokens: maxTok,
         temperature: 0.92,
         stream: false
@@ -46,14 +53,15 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (data.error) {
-      console.error('Groq error:', data.error);
+      console.error('Groq error:', JSON.stringify(data.error));
       return res.status(500).json({ error: data.error });
     }
 
     return res.status(200).json(data);
 
-  } catch (error) {
-    console.error('Error servidor:', error);
-    return res.status(500).json({ error: 'Error del servidor' });
+  } catch (err) {
+    console.error('Error servidor:', err.message);
+    return res.status(500).json({ error: err.message });
   }
 }
+
