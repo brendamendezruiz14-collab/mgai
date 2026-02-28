@@ -1,4 +1,4 @@
-aexport default async function handler(req, res) {
+   export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -11,32 +11,49 @@ aexport default async function handler(req, res) {
     const messages = body.messages;
     const model = body.model || 'corazon';
 
-    const tokenMap = { corazon: 2000, estrella: 800, brisa: 300 };
-    const maxTok = tokenMap[model] || 2000;
+    const tokenMap = { corazon: 2048, estrella: 800, brisa: 300 };
+    const maxTok = tokenMap[model] || 2048;
 
-    const lengthMap = {
-      corazon: `INSTRUCCION CRITICA DE LONGITUD: Tu respuesta DEBE tener minimo 10 parrafos completos y largos. 
-Cada parrafo minimo 5 oraciones. FORMATO OBLIGATORIO:
-- Parrafos de descripcion: *accion detallada con emociones fisicas y psicologicas del personaje*
-- Parrafos de dialogo: "palabras exactas que dice el personaje, cargadas de emocion"
-- Alterna descripcion y dialogo constantemente
-- Describe: lo que siente el personaje fisicamente, sus pensamientos internos, el ambiente, los detalles sensoriales
-- USA tension dramatica, pausas, miradas, gestos pequenos
-- NUNCA termines en menos de 10 parrafos. Si llegas a 5 parrafos, SIGUE escribiendo mas.`,
-      estrella: `INSTRUCCION DE LONGITUD: Escribe exactamente 5 parrafos medianos con emociones y dialogos.`,
-      brisa: `INSTRUCCION DE LONGITUD: Escribe 2 o 3 parrafos cortos y directos.`
-    };
+    // Reemplazar el mensaje del sistema con instrucciones más fuertes
+    const sysMsg = messages.find(m => m.role === 'system');
+    const userMsgs = messages.filter(m => m.role !== 'system');
 
-    const extra = lengthMap[model] || lengthMap.corazon;
+    let systemContent = sysMsg ? sysMsg.content : '';
 
-    const finalMessages = messages.map(function(msg) {
-      if (msg.role === 'system') {
-        return { role: 'system', content: msg.content + '\n\n' + extra };
-      }
-      return msg;
-    });
+    if (model === 'corazon') {
+      systemContent += `
 
-    // Usar llama-3.3-70b para respuestas más largas y detalladas
+=== REGLA ABSOLUTA DE LONGITUD ===
+Tu respuesta DEBE tener EXACTAMENTE entre 10 y 12 parrafos.
+CUENTA tus parrafos mientras escribes.
+Si llevas menos de 10 parrafos, CONTINUA escribiendo MAS.
+NO puedes terminar antes de 10 parrafos completos.
+
+Estructura de cada parrafo:
+- Parrafos impares: *descripcion detallada de acciones, emociones fisicas, pensamientos internos del personaje*
+- Parrafos pares: "dialogo emotivo y cargado de tension o amor"
+
+Ejemplo de como debe verse tu respuesta:
+*El personaje se detiene al escuchar tus palabras, su corazon latiendole con fuerza...*
+
+"Lo que dices me hace pensar en todo lo que hemos vivido juntos..."
+
+*Sus ojos te buscan en la habitacion, una mezcla de deseo y vulnerabilidad...*
+
+"No puedo seguir fingiendo que no me importas..."
+
+[continua hasta minimo 10 parrafos]`;
+    } else if (model === 'estrella') {
+      systemContent += '\n\nEscribe exactamente 5 parrafos con emociones y dialogos.';
+    } else {
+      systemContent += '\n\nEscribe 2 parrafos cortos y directos.';
+    }
+
+    const finalMessages = [
+      { role: 'system', content: systemContent },
+      ...userMsgs
+    ];
+
     const groqModel = model === 'corazon' ? 'llama-3.3-70b-versatile' : 'llama-3.1-8b-instant';
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -49,7 +66,7 @@ Cada parrafo minimo 5 oraciones. FORMATO OBLIGATORIO:
         model: groqModel,
         messages: finalMessages,
         max_tokens: maxTok,
-        temperature: 0.93,
+        temperature: 0.95,
         stream: false
       })
     });
