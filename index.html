@@ -1005,7 +1005,9 @@ function regenLast() {
   typ.textContent = "\u2728 Regenerando...";
   m.appendChild(typ);
   m.scrollTop = 99999;
-  callGroq(lastUser || "continua por donde ibas de forma romantica", curChar);
+  // Agregar instrucción de variación para que no repita
+  var regenText = (lastUser || "continua") + " [IMPORTANTE: Da una respuesta COMPLETAMENTE DIFERENTE a la anterior. Usa otras palabras, otras acciones, otro tono. NO repitas nada de lo que dijiste antes.]";
+  callGroq(regenText, curChar);
 }
 
 function continueStory() {
