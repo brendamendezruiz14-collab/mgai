@@ -1,4 +1,6 @@
- export default async function handler(req, res) {
+export const maxDuration = 60;
+
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -12,18 +14,10 @@
     const model = body.model || 'corazon';
 
     const tokenMap = { corazon: 2048, estrella: 800, brisa: 300 };
-    const maxTok = tokenMap[model] || 2048;
+    const maxTok = body.max_tokens || tokenMap[model] || 2048;
 
-    // Reemplazar el mensaje del sistema con instrucciones más fuertes
-    const sysMsg = messages.find(m => m.role === 'system');
-    const userMsgs = messages.filter(m => m.role !== 'system');
-
-    let systemContent = sysMsg ? sysMsg.content : '';
-
-    if (model === 'corazon') {
-      systemContent += `
-
-=== REGLA ABSOLUTA DE LONGITUD ===
+    const lengthMap = {
+      corazon: `=== REGLA ABSOLUTA DE LONGITUD ===
 Tu respuesta DEBE tener EXACTAMENTE entre 10 y 12 parrafos.
 CUENTA tus parrafos mientras escribes.
 Si llevas menos de 10 parrafos, CONTINUA escribiendo MAS.
@@ -33,26 +27,32 @@ Estructura de cada parrafo:
 - Parrafos impares: *descripcion detallada de acciones, emociones fisicas, pensamientos internos del personaje*
 - Parrafos pares: "dialogo emotivo y cargado de tension o amor"
 
-Ejemplo de como debe verse tu respuesta:
-*El personaje se detiene al escuchar tus palabras, su corazon latiendole con fuerza...*
+Debes incluir:
+- Lo que siente el personaje fisicamente (corazon, respiracion, temperatura)
+- Sus pensamientos internos que no dice en voz alta
+- Detalles del ambiente y los 5 sentidos
+- Tension dramatica, pausas con '...', miradas largas
+- Reaccion directa a lo que dijo la usuaria`,
 
-"Lo que dices me hace pensar en todo lo que hemos vivido juntos..."
+      estrella: `INSTRUCCION DE LONGITUD: Escribe EXACTAMENTE 5 parrafos medianos.
+Cada parrafo minimo 3 oraciones con emociones y dialogos.
+Alterna descripcion con dialogo.`,
 
-*Sus ojos te buscan en la habitacion, una mezcla de deseo y vulnerabilidad...*
+      brisa: `INSTRUCCION DE LONGITUD: Escribe 2 o 3 parrafos cortos y directos.
+Maximo 3 parrafos. Respuestas concisas pero emotivas.`
+    };
 
-"No puedo seguir fingiendo que no me importas..."
+    const extra = lengthMap[model] || lengthMap.corazon;
 
-[continua hasta minimo 10 parrafos]`;
-    } else if (model === 'estrella') {
-      systemContent += '\n\nEscribe exactamente 5 parrafos con emociones y dialogos.';
-    } else {
-      systemContent += '\n\nEscribe 2 parrafos cortos y directos.';
-    }
+    const sysMsg = messages.find(function(m) { return m.role === 'system'; });
+    const otherMsgs = messages.filter(function(m) { return m.role !== 'system'; });
+
+    var systemContent = sysMsg ? sysMsg.content : '';
+    systemContent += '\n\n' + extra;
 
     const finalMessages = [
-      { role: 'system', content: systemContent },
-      ...userMsgs
-    ];
+      { role: 'system', content: systemContent }
+    ].concat(otherMsgs);
 
     const groqModel = model === 'corazon' ? 'llama-3.3-70b-versatile' : 'llama-3.1-8b-instant';
 
