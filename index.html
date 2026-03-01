@@ -130,7 +130,7 @@ body{background:#0a0010;color:#f3e8ff;font-family:Nunito,sans-serif;max-width:43
 <div style="position:relative;z-index:2">
 <div class="hdr"><div class="logo" style="font-size:20px">📖 Biblioteca</div></div>
 <div class="ngrid">
-<div class="ncd"><div class="ncov" style="background:linear-gradient(135deg,#4c1d95,#7c3aed)">➕</div><div class="ninfo"><div class="ntit">Nueva Novela</div><div class="ngen">Crear</div></div></div>
+<div class="ncd" id="ncd-new"><div class="ncov" style="background:linear-gradient(135deg,#4c1d95,#7c3aed)">➕</div><div class="ninfo"><div class="ntit">Nueva Novela</div><div class="ngen">Crear con IA</div></div></div>
 <div class="ncd"><div class="ncov" style="background:linear-gradient(135deg,#1e1b4b,#4338ca)">🌙</div><div class="ninfo"><div class="ntit">El Príncipe Oscuro</div><div class="ngen">Romance · Cap.3</div></div></div>
 <div class="ncd"><div class="ncov" style="background:linear-gradient(135deg,#134e4a,#0d9488)">⭐</div><div class="ninfo"><div class="ntit">Bajo las Estrellas</div><div class="ngen">Fantasía · Cap.1</div></div></div>
 <div class="ncd"><div class="ncov" style="background:linear-gradient(135deg,#450a0a,#b91c1c)">🧛</div><div class="ninfo"><div class="ntit">Vampiro Moderno</div><div class="ngen">Sobrenatural · Cap.5</div></div></div>
@@ -140,20 +140,114 @@ body{background:#0a0010;color:#f3e8ff;font-family:Nunito,sans-serif;max-width:43
 
 <div class="page" id="pg-perfil">
 <div style="position:relative;z-index:2">
-<div class="pban"><div class="pav">✨</div></div>
-<div class="pinfo"><div style="font-size:22px;font-weight:800">Brenda</div><div style="font-size:12px;color:#a78bca;margin-top:3px">MG AI · Miembro</div></div>
+
+<!-- Botón configuración arriba derecha -->
+<div style="display:flex;justify-content:flex-end;padding:12px 16px 0">
+  <button id="btn-config" style="background:rgba(147,51,234,0.2);border:1px solid rgba(147,51,234,0.4);color:#c084fc;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer">⚙️</button>
+</div>
+
+<!-- Foto perfil clickeable -->
+<div class="pban">
+  <div class="pav" id="pav-click" style="cursor:pointer;position:relative;overflow:hidden">
+    <img id="pav-img" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;border-radius:50%">
+    <span id="pav-emoji">✨</span>
+    <div style="position:absolute;bottom:0;right:0;background:#9333ea;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px">📷</div>
+  </div>
+  <input type="file" id="pav-file" accept="image/*" style="display:none">
+</div>
+
+<div class="pinfo"><div style="font-size:22px;font-weight:800" id="pinfo-name">Brenda</div><div style="font-size:12px;color:#a78bca;margin-top:3px">MG AI · Miembro</div></div>
+
+<!-- Puntos -->
+<div style="margin:8px 16px;background:rgba(147,51,234,0.15);border:1px solid rgba(147,51,234,0.3);border-radius:14px;padding:12px;display:flex;align-items:center;justify-content:space-between">
+  <div style="font-size:13px;color:#a78bca">✨ Puntos MG</div>
+  <div style="font-weight:800;color:#c084fc;font-size:18px" id="pts-display">0 pts</div>
+</div>
+
 <div class="pbtns">
 <div class="pb" id="pb-credits"><div style="font-size:22px;margin-bottom:4px">⭐</div><div style="font-size:12px;color:#a78bca;font-weight:700">Magic+</div></div>
 <div class="pb" id="pb-creds2"><div style="font-size:22px;margin-bottom:4px">🪙</div><div style="font-size:12px;color:#a78bca;font-weight:700">Créditos</div></div>
 <div class="pb" id="pb-models"><div style="font-size:22px;margin-bottom:4px">❤️</div><div style="font-size:12px;color:#a78bca;font-weight:700">Modelo</div></div>
 <div class="pb" id="pb-pers"><div style="font-size:22px;margin-bottom:4px">👤</div><div style="font-size:12px;color:#a78bca;font-weight:700">Personalidad</div></div>
 </div>
+
+<!-- Tareas Magic+ -->
+<div style="padding:0 16px;margin-bottom:16px">
+  <div style="font-size:14px;font-weight:800;margin-bottom:10px">⚡ Tareas Magic+</div>
+  <div id="tasks-list">
+    <div class="task-item" id="task-video" style="background:rgba(147,51,234,0.1);border:1px solid rgba(147,51,234,0.3);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+      <div><div style="font-weight:700;font-size:13px">🎬 Ver un video</div><div style="font-size:11px;color:#a78bca;margin-top:2px">Gana 3 puntos por video</div></div>
+      <div style="background:rgba(147,51,234,0.3);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:#c084fc">+3 pts</div>
+    </div>
+    <div class="task-item" id="task-read" style="background:rgba(147,51,234,0.1);border:1px solid rgba(147,51,234,0.3);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+      <div><div style="font-weight:700;font-size:13px">📖 Leer una novela</div><div style="font-size:11px;color:#a78bca;margin-top:2px">Gana 1 punto por lectura</div></div>
+      <div style="background:rgba(147,51,234,0.3);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:#c084fc">+1 pt</div>
+    </div>
+    <div class="task-item" id="task-share" style="background:rgba(147,51,234,0.1);border:1px solid rgba(147,51,234,0.3);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;cursor:pointer">
+      <div><div style="font-weight:700;font-size:13px">📤 Compartir una novela</div><div style="font-size:11px;color:#a78bca;margin-top:2px">Gana 5 puntos al compartir</div></div>
+      <div style="background:rgba(147,51,234,0.3);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:#c084fc">+5 pts</div>
+    </div>
+  </div>
+</div>
+
 <div style="padding:0 16px 20px">
-<div style="font-size:14px;font-weight:800;margin-bottom:10px">Mis Personajes</div>
-<div class="mychars" id="mychars"></div>
+  <div style="font-size:14px;font-weight:800;margin-bottom:10px">Mis Personajes</div>
+  <div class="mychars" id="mychars"></div>
 </div>
 </div>
 </div>
+
+<!-- Modal Configuración -->
+<div class="mov" id="m-config"><div class="mod">
+<button class="mcl" id="mcl-config">✕</button>
+<div class="mtit">⚙️ Configuración</div>
+
+<div style="margin-top:12px">
+  <div style="font-size:13px;font-weight:800;color:#c084fc;margin-bottom:8px">🌐 Idioma</div>
+  <select id="cfg-lang" class="minp">
+    <option value="es">🇲🇽 Español</option>
+    <option value="en">🇺🇸 English</option>
+    <option value="pt">🇧🇷 Português</option>
+    <option value="fr">🇫🇷 Français</option>
+  </select>
+</div>
+
+<div style="margin-top:16px">
+  <div style="font-size:13px;font-weight:800;color:#c084fc;margin-bottom:8px">🔞 Contenido adulto</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(147,51,234,0.1);border-radius:12px;padding:12px">
+    <span style="font-size:13px">Activar contenido adulto</span>
+    <label style="position:relative;display:inline-block;width:44px;height:24px">
+      <input type="checkbox" id="cfg-adult" style="opacity:0;width:0;height:0">
+      <span id="toggle-adult" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#4c1d95;border-radius:24px;transition:.3s"></span>
+    </label>
+  </div>
+</div>
+
+<div style="margin-top:12px">
+  <div style="font-size:13px;font-weight:800;color:#c084fc;margin-bottom:8px">⚔️ Contenido violento</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(147,51,234,0.1);border-radius:12px;padding:12px">
+    <span style="font-size:13px">Activar contenido violento</span>
+    <label style="position:relative;display:inline-block;width:44px;height:24px">
+      <input type="checkbox" id="cfg-violence" style="opacity:0;width:0;height:0">
+      <span id="toggle-violence" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#4c1d95;border-radius:24px;transition:.3s"></span>
+    </label>
+  </div>
+</div>
+
+<div style="margin-top:12px">
+  <div style="font-size:13px;font-weight:800;color:#c084fc;margin-bottom:8px">🔤 Filtro de lenguaje</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(147,51,234,0.1);border-radius:12px;padding:12px">
+    <span style="font-size:13px">Filtrar lenguaje fuerte</span>
+    <label style="position:relative;display:inline-block;width:44px;height:24px">
+      <input type="checkbox" id="cfg-language" checked style="opacity:0;width:0;height:0">
+      <span id="toggle-language" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#9333ea;border-radius:24px;transition:.3s"></span>
+    </label>
+  </div>
+</div>
+
+<button class="mbtn" id="btn-saveconfig" style="margin-top:16px">💾 Guardar configuración</button>
+<button class="mbtn" id="btn-logout" style="margin-top:8px;background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.4);color:#f87171">🚪 Cerrar sesión</button>
+</div></div>
 
 <div class="cha" id="cha">
 <div class="chahdr">
@@ -234,12 +328,28 @@ body{background:#0a0010;color:#f3e8ff;font-family:Nunito,sans-serif;max-width:43
 <div class="mov" id="m-novel"><div class="mod">
 <button class="mcl" id="mcl-novel">✕</button>
 <div class="mtit">📖 Nueva Novela</div>
-<div class="msub">Crea tu historia interactiva</div>
+<div class="msub">Crea tu historia con IA</div>
 <span class="mlbl" style="margin-top:0">Título *</span>
 <input id="nov-t" type="text" placeholder="Título de tu novela" class="minp" style="margin-top:5px">
 <span class="mlbl">Género</span>
-<select id="nov-g" class="minp" style="margin-top:5px"><option>Romance</option><option>Fantasía</option><option>Sobrenatural</option><option>Aventura</option><option>Drama</option></select>
-<button class="mbtn" id="btn-savenovel">✨ Crear Novela</button>
+<select id="nov-g" class="minp" style="margin-top:5px">
+  <option>Romance</option>
+  <option>Fantasía</option>
+  <option>Sobrenatural</option>
+  <option>Aventura</option>
+  <option>Drama</option>
+</select>
+<span class="mlbl">Personaje principal</span>
+<input id="nov-char" type="text" placeholder="Nombre del personaje (ej: Ren, Matheus...)" class="minp" style="margin-top:5px">
+<span class="mlbl">Descripción de tu historia</span>
+<textarea id="nov-desc" placeholder="Describe tu historia... ¿De qué trata? ¿Qué ha pasado hasta ahora?" class="minp" style="margin-top:5px;height:80px;resize:none"></textarea>
+<button class="mbtn" id="btn-savenovel">✨ Generar Novela con IA</button>
+<div id="nov-progress" style="display:none;margin-top:12px">
+  <div id="nov-step" style="color:#c084fc;font-size:13px;text-align:center;margin-bottom:8px">⏳ Iniciando...</div>
+  <div style="background:rgba(147,51,234,0.2);border-radius:10px;height:8px;overflow:hidden">
+    <div id="nov-bar" style="height:100%;background:linear-gradient(90deg,#9333ea,#c084fc);border-radius:10px;width:0%;transition:width 0.5s"></div>
+  </div>
+</div>
 </div></div>
 
 <div class="mov" id="m-credits"><div class="mod">
@@ -581,11 +691,11 @@ function startChat(id) {
   document.getElementById("cha").classList.add("on");
   document.getElementById("nav").style.display = "none";
   m.scrollTop = m.scrollHeight;
-  // Mostrar botones si ya hay historial
-  if (msgs[id] && msgs[id].length > 1) {
-    showActionBtns();
+  // Al inicio solo mostrar Continuar
+  if (msgs[id].length <= 1) {
+    showActionBtns(true); // solo Continuar
   } else {
-    document.getElementById("chat-action-btns").classList.remove("vis");
+    showActionBtns(false); // Regenerar y Continuar
   }
 }
 
@@ -690,8 +800,6 @@ function buildSystemPrompt(c) {
     "Personalidad: " + c.p + ". " +
     "\n\nFORMATO OBLIGATORIO de novela romantica:\n" +
     "- Alterna entre: *descripcion de acciones y emociones* y dialogos entre comillas\n" +
-    "- Ejemplo de formato: *Sus ojos se clavaron en los tuyos, el corazon latiendole con fuerza* Una pausa cargada de tension llenó el espacio entre ustedes.\n" +
-    "  \"No sabia que esto iba a pasar\", dijo en voz baja.\n" +
     "- Describe emociones internas del personaje: lo que piensa, lo que siente, lo que le provoca la usuaria\n" +
     "- Usa los 5 sentidos: lo que ve, oye, huele, toca\n" +
     "- Dialogo natural y emotivo entre comillas\n" +
@@ -700,6 +808,19 @@ function buildSystemPrompt(c) {
     "- Responde SIEMPRE en espanol\n" +
     "- La usuaria se llama " + userName + " — dirigete a ella por su nombre a veces\n" +
     "- Reacciona DIRECTAMENTE a lo que dijo " + userName + ", no ignores su mensaje\n" +
+    "\nPERSONAJES SECUNDARIOS:\n" +
+    "- Si la historia lo requiere, puedes incluir personajes secundarios (familia, amigos, enemigos) que hablen y actuen en la escena\n" +
+    "- Los personajes secundarios tienen voz y acciones propias: *Luna entro corriendo* 'Papa, ya llegue!'\n" +
+    "- NUNCA hagas hablar ni actuar a " + userName + " — ella decide sus propias acciones\n" +
+    "- Los personajes secundarios enriquecen la historia pero " + userName + " siempre sigue siendo el centro\n" +
+    "- Ejemplo: si hay una hija, ella puede aparecer en escena, hablar con el personaje, crear momentos, pero sin ignorar a " + userName + "\n" +
+    "\nEVOLUCION DEL PERSONAJE:\n" +
+    "- Si el personaje es frio o distante, debe evolucionar GRADUALMENTE a lo largo de la conversacion\n" +
+    "- Primero: distante, seco, pocas palabras pero con detalles que revelan interes oculto\n" +
+    "- Despues de varios mensajes: pequeños gestos, miradas mas largas, momentos de vulnerabilidad\n" +
+    "- Luego: se abre un poco mas, baja la guardia en momentos especificos\n" +
+    "- NUNCA pierde su personalidad base — sigue siendo el, solo mas humano\n" +
+    "- Un personaje frio NO es grosero — es reservado, directo, con momentos de calidez inesperada\n" +
     "\n" + instrLen;
 }
 
@@ -752,7 +873,7 @@ function callGroq(text, c) {
       addBub(reply, "char", true);
       msgs[id].push({r:"char", t:reply});
       if (achats[id]) { achats[id].prev = reply.substring(0,50); drawChatList(); }
-      showActionBtns();
+      showActionBtns(false); // mostrar Regenerar y Continuar
       saveData();
     }
   })
@@ -765,7 +886,7 @@ function callGroq(text, c) {
     addBub(fallback, "char", true);
     msgs[id].push({r:"char", t:fallback});
     if (achats[id]) { achats[id].prev = fallback.substring(0,50); drawChatList(); }
-    showActionBtns();
+    showActionBtns(false);
   });
 }
 
@@ -977,9 +1098,15 @@ document.getElementById("fb-fa").addEventListener("click", function() {
 });
 
 // REGENERAR Y CONTINUAR
-function showActionBtns() {
+function showActionBtns(soloContinu) {
   var ab = document.getElementById("chat-action-btns");
   ab.classList.add("vis");
+  var regen = document.getElementById("btn-regen");
+  if (soloContinu) {
+    regen.style.display = "none";
+  } else {
+    regen.style.display = "flex";
+  }
 }
 
 function regenLast() {
@@ -1161,11 +1288,361 @@ document.getElementById("btn-continue").addEventListener("click", continueStory)
   });
 });
 
+
+
+// ===== SISTEMA DE PERFIL Y PUNTOS =====
+var userPoints = parseInt(localStorage.getItem('mgai_points') || '0');
+var userConfig = JSON.parse(localStorage.getItem('mgai_config') || '{"lang":"es","adult":false,"violence":false,"language":true}');
+
+function updatePoints(pts) {
+  userPoints += pts;
+  localStorage.setItem('mgai_points', userPoints);
+  var el = document.getElementById('pts-display');
+  if (el) el.textContent = userPoints + ' pts';
+  // Animación
+  if (el) {
+    el.style.color = '#22c55e';
+    el.style.transform = 'scale(1.3)';
+    setTimeout(function() {
+      el.style.color = '#c084fc';
+      el.style.transform = 'scale(1)';
+    }, 600);
+  }
+  alert('✨ +' + pts + ' puntos ganados! Total: ' + userPoints + ' pts');
+}
+
+function loadProfile() {
+  // Puntos
+  var el = document.getElementById('pts-display');
+  if (el) el.textContent = userPoints + ' pts';
+  
+  // Foto perfil
+  var savedPhoto = localStorage.getItem('mgai_photo');
+  if (savedPhoto) {
+    var img = document.getElementById('pav-img');
+    var emoji = document.getElementById('pav-emoji');
+    if (img && emoji) {
+      img.src = savedPhoto;
+      img.style.display = 'block';
+      emoji.style.display = 'none';
+    }
+  }
+  
+  // Configuración toggles
+  var adultCheck = document.getElementById('cfg-adult');
+  var violenceCheck = document.getElementById('cfg-violence');
+  var langCheck = document.getElementById('cfg-language');
+  if (adultCheck) adultCheck.checked = userConfig.adult;
+  if (violenceCheck) violenceCheck.checked = userConfig.violence;
+  if (langCheck) langCheck.checked = userConfig.language;
+  
+  // Actualizar toggles visual
+  updateToggle('toggle-adult', userConfig.adult);
+  updateToggle('toggle-violence', userConfig.violence);
+  updateToggle('toggle-language', userConfig.language);
+}
+
+function updateToggle(id, active) {
+  var el = document.getElementById(id);
+  if (el) el.style.background = active ? '#9333ea' : '#4c1d95';
+}
+
+// ===== SISTEMA DE NOVELAS =====
+var novels = JSON.parse(localStorage.getItem('mgai_novels') || '[]');
+
+function drawNovels() {
+  var grid = document.querySelector('.ngrid');
+  if (!grid) return;
+  // Limpiar novelas previas (dejar solo la primera tarjeta "Nueva Novela")
+  var cards = grid.querySelectorAll('.ncd');
+  for (var i = cards.length - 1; i >= 1; i--) cards[i].remove();
+  
+  // Agregar novelas guardadas
+  var colors = ['linear-gradient(135deg,#4c1d95,#7c3aed)', 'linear-gradient(135deg,#1e1b4b,#4338ca)', 'linear-gradient(135deg,#134e4a,#0d9488)', 'linear-gradient(135deg,#450a0a,#b91c1c)'];
+  var emojis = ['🌙','⭐','🌹','🔥','💜','✨'];
+  
+  for (var i = 0; i < novels.length; i++) {
+    var n = novels[i];
+    var card = document.createElement('div');
+    card.className = 'ncd';
+    card.setAttribute('data-nid', n.id);
+    card.innerHTML = '<div class="ncov" style="background:' + colors[i % colors.length] + '">' + emojis[i % emojis.length] + '</div>' +
+      '<div class="ninfo"><div class="ntit">' + n.title + '</div><div class="ngen">' + n.genre + ' · ' + n.chapters.length + ' caps</div></div>';
+    card.addEventListener('click', function() { openNovel(this.getAttribute('data-nid')); });
+    grid.appendChild(card);
+  }
+}
+
+function openNovel(id) {
+  var n = null;
+  for (var i = 0; i < novels.length; i++) if (novels[i].id === id) { n = novels[i]; break; }
+  if (!n) return;
+  
+  // Mostrar novela
+  var m = document.getElementById('cha-msgs');
+  var cha = document.getElementById('cha');
+  document.getElementById('cha-name').textContent = n.title;
+  document.getElementById('cha-av').textContent = '📖';
+  m.innerHTML = '';
+  
+  // Mostrar índice de capítulos
+  var idx = document.createElement('div');
+  idx.style.cssText = 'padding:16px;color:#c084fc;font-size:14px';
+  idx.innerHTML = '<div style="font-weight:800;font-size:16px;margin-bottom:12px">📚 ' + n.title + '</div>' +
+    '<div style="color:#a78bca;margin-bottom:16px">' + n.genre + ' · ' + n.chapters.length + ' capítulos</div>';
+  
+  for (var i = 0; i < n.chapters.length; i++) {
+    var ch = document.createElement('div');
+    ch.style.cssText = 'background:rgba(147,51,234,0.1);border:1px solid rgba(147,51,234,0.3);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer';
+    ch.setAttribute('data-nid', n.id);
+    ch.setAttribute('data-chap', i);
+    ch.innerHTML = '<div style="font-weight:700">Capítulo ' + (i+1) + '</div><div style="font-size:12px;color:#a78bca;margin-top:4px">' + n.chapters[i].title + '</div>';
+    ch.addEventListener('click', function() { showChapter(this.getAttribute('data-nid'), parseInt(this.getAttribute('data-chap'))); });
+    idx.appendChild(ch);
+  }
+  m.appendChild(idx);
+  cha.classList.add('on');
+  document.getElementById('nav').style.display = 'none';
+}
+
+function showChapter(nid, chapIdx) {
+  var n = null;
+  for (var i = 0; i < novels.length; i++) if (novels[i].id === nid) { n = novels[i]; break; }
+  if (!n) return;
+  
+  var ch = n.chapters[chapIdx];
+  var m = document.getElementById('cha-msgs');
+  m.innerHTML = '';
+  
+  var div = document.createElement('div');
+  div.style.cssText = 'padding:20px;color:#e9d5ff;font-size:14px;line-height:1.8';
+  div.innerHTML = '<div style="color:#c084fc;font-weight:800;font-size:16px;margin-bottom:8px">Capítulo ' + (chapIdx+1) + '</div>' +
+    '<div style="color:#a78bca;font-style:italic;margin-bottom:16px">' + ch.title + '</div>' +
+    '<div>' + ch.content.split('\n').join('<br>') + '</div>';
+  
+  // Botón volver
+  var back = document.createElement('button');
+  back.className = 'mbtn';
+  back.style.cssText = 'margin:16px;width:calc(100% - 32px)';
+  back.textContent = '← Volver al índice';
+  back.setAttribute('data-nid', nid);
+  back.addEventListener('click', function() { openNovel(this.getAttribute('data-nid')); });
+  
+  m.appendChild(div);
+  m.appendChild(back);
+  m.scrollTop = 0;
+}
+
+async function generateNovel() {
+  var title = document.getElementById('nov-t').value.trim();
+  var genre = document.getElementById('nov-g').value;
+  var charName = document.getElementById('nov-char').value.trim();
+  var desc = document.getElementById('nov-desc').value.trim();
+  
+  if (!title || !desc) { alert('Por favor llena el título y la descripción'); return; }
+  
+  var btn = document.getElementById('btn-savenovel');
+  var progress = document.getElementById('nov-progress');
+  var step = document.getElementById('nov-step');
+  var bar = document.getElementById('nov-bar');
+  
+  btn.disabled = true;
+  btn.textContent = '✨ Generando...';
+  progress.style.display = 'block';
+  
+  var steps = [
+    { text: '📋 Creando estructura de la novela...', pct: '20%' },
+    { text: '✍️ Desarrollando la trama...', pct: '50%' },
+    { text: '📖 Escribiendo capítulos...', pct: '75%' },
+    { text: '🎨 Finalizando y revisando...', pct: '90%' },
+    { text: '✅ ¡Novela lista!', pct: '100%' }
+  ];
+  
+  try {
+    // Paso 1: Generar estructura
+    step.textContent = steps[0].text;
+    bar.style.width = steps[0].pct;
+    
+    var structurePrompt = 'Crea una novela de ' + genre + ' en español titulada "' + title + '". ' +
+      'Personaje principal: ' + (charName || 'el protagonista') + '. ' +
+      'Historia base: ' + desc + '. ' +
+      'Genera exactamente 15 títulos de capítulos creativos. ' +
+      'Responde SOLO en formato JSON: {"chapters":[{"title":"titulo cap 1"},{"title":"titulo cap 2"}...]} ' +
+      'Sin texto extra, solo el JSON.';
+    
+    var r1 = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        messages: [{role:'user', content: structurePrompt}],
+        model: 'estrella',
+        max_tokens: 800
+      })
+    });
+    var d1 = await r1.json();
+    var structText = d1.choices[0].message.content;
+    
+    // Parsear JSON
+    var jsonStart = structText.indexOf("{");
+    var jsonEnd = structText.lastIndexOf("}") + 1;
+    var structure = JSON.parse(structText.substring(jsonStart, jsonEnd));
+    
+    step.textContent = steps[1].text;
+    bar.style.width = steps[1].pct;
+    
+    // Paso 2: Generar contenido de cada capítulo (primeros 5 para no tardar mucho)
+    var chapters = [];
+    var totalChaps = Math.min(structure.chapters.length, 15);
+    
+    for (var i = 0; i < totalChaps; i++) {
+      var chapTitle = structure.chapters[i].title;
+      var pct = Math.round(50 + (i / totalChaps) * 40);
+      step.textContent = '✍️ Escribiendo capítulo ' + (i+1) + ' de ' + totalChaps + '...';
+      bar.style.width = pct + '%';
+      
+      var chapPrompt = 'Escribe el capítulo ' + (i+1) + ' de la novela "' + title + '" titulado "' + chapTitle + '". ' +
+        'Género: ' + genre + '. Personaje: ' + (charName || 'el protagonista') + '. Historia: ' + desc + '. ' +
+        'Escribe 4-5 párrafos narrativos, emotivos, con diálogos y descripciones detalladas. ' +
+        'Solo el contenido del capítulo, sin título.';
+      
+      var rc = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          messages: [{role:'user', content: chapPrompt}],
+          model: 'estrella',
+          max_tokens: 600
+        })
+      });
+      var dc = await rc.json();
+      var chapContent = dc.choices[0].message.content;
+      
+      chapters.push({ title: chapTitle, content: chapContent });
+      
+      // Pequeña pausa
+      await new Promise(function(r){ setTimeout(r, 300); });
+    }
+    
+    step.textContent = steps[4].text;
+    bar.style.width = steps[4].pct;
+    
+    // Guardar novela
+    var newNovel = {
+      id: 'n' + Date.now(),
+      title: title,
+      genre: genre,
+      character: charName,
+      chapters: chapters
+    };
+    novels.push(newNovel);
+    localStorage.setItem('mgai_novels', JSON.stringify(novels));
+    
+    await new Promise(function(r){ setTimeout(r, 800); });
+    
+    // Cerrar modal y mostrar novela
+    hide('m-novel');
+    btn.disabled = false;
+    btn.textContent = '✨ Generar Novela con IA';
+    progress.style.display = 'none';
+    bar.style.width = '0%';
+    document.getElementById('nov-t').value = '';
+    document.getElementById('nov-desc').value = '';
+    document.getElementById('nov-char').value = '';
+    
+    drawNovels();
+loadProfile();
+    openNovel(newNovel.id);
+    
+  } catch(e) {
+    console.error('Error generando novela:', e);
+    step.textContent = '❌ Error. Intenta de nuevo.';
+    btn.disabled = false;
+    btn.textContent = '✨ Generar Novela con IA';
+  }
+}
+
 // INIT
 loadData();
 drawGrid("all");
 drawMyChars();
 drawChatList();
+drawNovels();
+loadProfile();
+
+// Listeners novelas
+document.getElementById("ncd-new").addEventListener("click", function() { show("m-novel"); });
+document.getElementById("mcl-novel").addEventListener("click", function() { hide("m-novel"); });
+document.getElementById("btn-savenovel").addEventListener("click", generateNovel);
+
+// Foto perfil
+document.getElementById("pav-click").addEventListener("click", function() {
+  document.getElementById("pav-file").click();
+});
+document.getElementById("pav-file").addEventListener("change", function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var img = document.getElementById("pav-img");
+    var emoji = document.getElementById("pav-emoji");
+    img.src = ev.target.result;
+    img.style.display = "block";
+    emoji.style.display = "none";
+    localStorage.setItem("mgai_photo", ev.target.result);
+  };
+  reader.readAsDataURL(file);
+});
+
+// Configuración
+document.getElementById("btn-config").addEventListener("click", function() { show("m-config"); });
+document.getElementById("mcl-config").addEventListener("click", function() { hide("m-config"); });
+
+// Toggles
+["cfg-adult","cfg-violence","cfg-language"].forEach(function(id) {
+  var el = document.getElementById(id);
+  var toggleId = "toggle-" + id.replace("cfg-","");
+  if (el) el.addEventListener("change", function() {
+    updateToggle(toggleId, this.checked);
+  });
+});
+
+document.getElementById("btn-saveconfig").addEventListener("click", function() {
+  userConfig.adult = document.getElementById("cfg-adult").checked;
+  userConfig.violence = document.getElementById("cfg-violence").checked;
+  userConfig.language = document.getElementById("cfg-language").checked;
+  userConfig.lang = document.getElementById("cfg-lang").value;
+  localStorage.setItem("mgai_config", JSON.stringify(userConfig));
+  hide("m-config");
+  alert("✅ Configuración guardada!");
+});
+
+document.getElementById("btn-logout").addEventListener("click", function() {
+  if (confirm("¿Cerrar sesión? Se borrarán tus datos locales.")) {
+    localStorage.clear();
+    location.reload();
+  }
+});
+
+// Tareas Magic+
+document.getElementById("task-video").addEventListener("click", function() {
+  updatePoints(3);
+});
+document.getElementById("task-read").addEventListener("click", function() {
+  updatePoints(1);
+});
+document.getElementById("task-share").addEventListener("click", function() {
+  if (navigator.share) {
+    navigator.share({ title: "MG AI", url: "https://mgai-orcin.vercel.app" })
+      .then(function() { updatePoints(5); });
+  } else {
+    navigator.clipboard.writeText("https://mgai-orcin.vercel.app");
+    updatePoints(5);
+    alert("✅ Link copiado! +5 puntos");
+  }
+});
+
+// Cargar perfil
+loadProfile();
 </script>
 
 <script>
