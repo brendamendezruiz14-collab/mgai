@@ -1490,37 +1490,44 @@ async function generateNovel() {
     step.textContent = steps[1].text;
     bar.style.width = steps[1].pct;
     
-    // Paso 2: Generar contenido de cada capítulo (primeros 5 para no tardar mucho)
+    // Paso 2: Generar todos los capítulos en UNA sola llamada para evitar timeout
     var chapters = [];
     var totalChaps = Math.min(structure.chapters.length, 15);
+    var allTitles = structure.chapters.slice(0, totalChaps).map(function(c, i) { return (i+1) + '. ' + c.title; }).join('\n');
     
+    step.textContent = '✍️ Escribiendo todos los capítulos...';
+    bar.style.width = '75%';
+    
+    var allChapsPrompt = 'Escribe una novela de ' + genre + ' titulada "' + title + '". ' +
+      'Personaje principal: ' + (charName || 'el protagonista') + '. Historia: ' + desc + '. ' +
+      'Escribe los siguientes ' + totalChaps + ' capítulos:\n' + allTitles + '\n\n' +
+      'Para cada capitulo escribe 3 parrafos narrativos con dialogos. ' +
+      'Formato: usa === CAPITULO 1: [titulo] === antes de cada capitulo. Solo el contenido, en español.';
+    
+    var rc = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        messages: [{role:'user', content: allChapsPrompt}],
+        model: 'corazon',
+        max_tokens: 2000
+      })
+    });
+    var dc = await rc.json();
+    var allContent = dc.choices[0].message.content;
+    
+    // Dividir por capítulos
+    var chapSections = allContent.split(/===\s*CAPITULO/i);
     for (var i = 0; i < totalChaps; i++) {
       var chapTitle = structure.chapters[i].title;
-      var pct = Math.round(50 + (i / totalChaps) * 40);
-      step.textContent = '✍️ Escribiendo capítulo ' + (i+1) + ' de ' + totalChaps + '...';
-      bar.style.width = pct + '%';
-      
-      var chapPrompt = 'Escribe el capítulo ' + (i+1) + ' de la novela "' + title + '" titulado "' + chapTitle + '". ' +
-        'Género: ' + genre + '. Personaje: ' + (charName || 'el protagonista') + '. Historia: ' + desc + '. ' +
-        'Escribe 4-5 párrafos narrativos, emotivos, con diálogos y descripciones detalladas. ' +
-        'Solo el contenido del capítulo, sin título.';
-      
-      var rc = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          messages: [{role:'user', content: chapPrompt}],
-          model: 'estrella',
-          max_tokens: 600
-        })
-      });
-      var dc = await rc.json();
-      var chapContent = dc.choices[0].message.content;
-      
+      var chapContent = '';
+      if (chapSections[i+1]) {
+        // Quitar la primera línea (título) y usar el resto
+        var lines = chapSections[i+1].split('\n');
+        chapContent = lines.slice(2).join('\n').trim();
+      }
+      if (!chapContent) chapContent = 'Capítulo en desarrollo...';
       chapters.push({ title: chapTitle, content: chapContent });
-      
-      // Pequeña pausa
-      await new Promise(function(r){ setTimeout(r, 300); });
     }
     
     step.textContent = steps[4].text;
