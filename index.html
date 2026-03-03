@@ -1495,45 +1495,45 @@ async function generateNovel() {
     var totalChaps = Math.min(structure.chapters.length, 15);
     
     // Generar de 3 en 3
-    var batchSize = 3;
+    var batchSize = 1;
     for (var batch = 0; batch < totalChaps; batch += batchSize) {
       var batchEnd = Math.min(batch + batchSize, totalChaps);
-      var batchTitles = '';
-      for (var bi = batch; bi < batchEnd; bi++) {
-        batchTitles += (bi+1) + '. ' + structure.chapters[bi].title + '\n';
-      }
       
       var pct = Math.round(50 + (batch / totalChaps) * 45);
-      step.textContent = 'Escribiendo capitulos ' + (batch+1) + ' al ' + batchEnd + ' de ' + totalChaps + '...';
+      step.textContent = 'Escribiendo capitulo ' + (batch+1) + ' de ' + totalChaps + '...';
       bar.style.width = pct + '%';
       
-      var batchPrompt = 'Novela: "' + title + '". Genero: ' + genre + '. Personaje: ' + (charName || 'protagonista') + '.\n' +
-        'Escribe estos capitulos:\n' + batchTitles +
-        'Cada capitulo: 3 parrafos con dialogo y emociones. ' +
-        'Formato: === CAP[numero] === antes de cada uno. En espanol.';
+      var chapTitle = structure.chapters[batch].title;
+      var chapPrompt = 'Escribe el capitulo ' + (batch+1) + ' titulado "' + chapTitle + '" de la novela "' + title + '". ' +
+        'Genero: ' + genre + '. Personaje: ' + (charName || 'protagonista') + '. ' +
+        'Escribe exactamente 3 parrafos con dialogos y emociones. Solo el contenido, en espanol.';
       
-      var rb = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          messages: [{role:'user', content: batchPrompt}],
-          model: 'brisa',
-          max_tokens: 700
-        })
-      });
-      var db = await rb.json();
-      var batchContent = db.choices && db.choices[0] ? db.choices[0].message.content : '';
+      var chapContent = 'Capitulo en desarrollo...';
       
-      // Dividir por capitulos
-      var parts = batchContent.split('=== CAP');
-      var partIdx = 1;
-      for (var ci = batch; ci < batchEnd; ci++) {
-        var chapContent = parts[partIdx] ? parts[partIdx].replace(/^[0-9]+\s*===\s*/, '').trim() : 'Capitulo en desarrollo...';
-        chapters.push({ title: structure.chapters[ci].title, content: chapContent });
-        partIdx++;
+      // Intentar hasta 2 veces
+      for (var intento = 0; intento < 2; intento++) {
+        try {
+          var rb = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+              messages: [{role:'user', content: chapPrompt}],
+              model: 'brisa',
+              max_tokens: 400
+            })
+          });
+          var db = await rb.json();
+          if (db.choices && db.choices[0]) {
+            chapContent = db.choices[0].message.content;
+            break;
+          }
+        } catch(e) {
+          await new Promise(function(r){ setTimeout(r, 1000); });
+        }
       }
       
-      await new Promise(function(r){ setTimeout(r, 200); });
+      chapters.push({ title: chapTitle, content: chapContent });
+      await new Promise(function(r){ setTimeout(r, 100); });
     }
     
     step.textContent = steps[4].text;
