@@ -1507,18 +1507,18 @@ async function generateNovel() {
       step.textContent = 'Escribiendo capitulos ' + (batch+1) + ' al ' + batchEnd + ' de ' + totalChaps + '...';
       bar.style.width = pct + '%';
       
-      var batchPrompt = 'Escribe estos capitulos de la novela "' + title + '" (genero: ' + genre + ', personaje: ' + (charName || 'protagonista') + ', historia: ' + desc + '):\n' +
-        batchTitles + '\n' +
-        'Para cada capitulo: 3 parrafos con dialogos y emociones. ' +
-        'Formato EXACTO: escribe === CAP[numero] === antes de cada capitulo. En espanol.';
+      var batchPrompt = 'Novela: "' + title + '". Genero: ' + genre + '. Personaje: ' + (charName || 'protagonista') + '.\n' +
+        'Escribe estos capitulos:\n' + batchTitles +
+        'Cada capitulo: 3 parrafos con dialogo y emociones. ' +
+        'Formato: === CAP[numero] === antes de cada uno. En espanol.';
       
       var rb = await fetch('/api/chat', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           messages: [{role:'user', content: batchPrompt}],
-          model: 'estrella',
-          max_tokens: 900
+          model: 'brisa',
+          max_tokens: 700
         })
       });
       var db = await rb.json();
