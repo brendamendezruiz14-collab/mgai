@@ -172,12 +172,26 @@ body{background:#0a0010;color:#f3e8ff;font-family:Nunito,sans-serif;max-width:43
 <div class="page on" id="pg-inicio">
 <div style="position:relative;z-index:2">
 <div class="hdr"><div class="logo">✦ MG AI</div><div class="sub">Tu historia. Tu personaje. 💜</div></div>
-<div class="filters">
-<button class="fb on" id="fb-all">Explorar</button>
-<button class="fb" id="fb-m">Masculino</button>
-<button class="fb" id="fb-f">Femenino</button>
-<button class="fb" id="fb-fa">Fantasía</button>
+
+<!-- Barra de búsqueda -->
+<div style="padding:0 16px 8px">
+  <div style="position:relative">
+    <input id="search-input" type="text" placeholder="🔍 Buscar personaje..." 
+      style="width:100%;background:rgba(147,51,234,0.15);border:1px solid rgba(147,51,234,0.4);color:#e9d5ff;border-radius:14px;padding:12px 16px;font-size:14px;box-sizing:border-box;outline:none">
+  </div>
 </div>
+
+<!-- Filtros -->
+<div class="filters" style="overflow-x:auto;white-space:nowrap;padding-bottom:4px">
+<button class="fb on" id="fb-all">✨ Todos</button>
+<button class="fb" id="fb-m">👨 Masculino</button>
+<button class="fb" id="fb-f">👩 Femenino</button>
+<button class="fb" id="fb-fa">🧙 Fantasía</button>
+<button class="fb" id="fb-rom">💜 Romance</button>
+<button class="fb" id="fb-pop">🔥 Populares</button>
+<button class="fb" id="fb-new">🆕 Nuevos</button>
+</div>
+
 <div class="glbl">✦ <span id="cnt">10</span> personajes disponibles</div>
 <div class="cgrid" id="cgrid"></div>
 </div>
@@ -677,20 +691,51 @@ function go(page) {
 function show(id) { document.getElementById(id).classList.add("on"); }
 function hide(id) { document.getElementById(id).classList.remove("on"); }
 
-function drawGrid(cat) {
-  var isAdult = currentUser && currentUser.age >= 18 && userConfig.adult;
+function drawGrid(cat, searchTerm) {
+  selCat = cat || selCat;
+  // Leer config actualizada del localStorage
+  var savedConfig = JSON.parse(localStorage.getItem('mgai_config') || '{}');
+  var isAdult = currentUser && currentUser.age >= 18 && (savedConfig.adult || userConfig.adult);
+  var search = searchTerm !== undefined ? searchTerm : (document.getElementById("search-input") ? document.getElementById("search-input").value.toLowerCase() : "");
+  
   var all = chars.concat(uchars).filter(function(c) {
     if (c.adult && !isAdult) return false;
     return true;
   });
-  var list = cat === "all" ? all : all.filter(function(c) { return c.c === cat; });
+  
+  var list = all;
+  
+  // Filtrar por categoría
+  if (selCat === "m") list = list.filter(function(c) { return c.c === "m"; });
+  else if (selCat === "f") list = list.filter(function(c) { return c.c === "f"; });
+  else if (selCat === "fa") list = list.filter(function(c) { return c.c === "fa"; });
+  else if (selCat === "rom") list = list.filter(function(c) { return c.c === "m" || c.c === "f"; });
+  else if (selCat === "pop") list = list.slice().sort(function(a,b) { return (b.pop||0)-(a.pop||0); });
+  else if (selCat === "new") list = list.slice().reverse();
+  
+  // Filtrar por búsqueda
+  if (search) {
+    list = list.filter(function(c) {
+      return c.n.toLowerCase().indexOf(search) >= 0 || 
+             c.d.toLowerCase().indexOf(search) >= 0 ||
+             (c.p && c.p.toLowerCase().indexOf(search) >= 0);
+    });
+  }
+  
   document.getElementById("cnt").textContent = list.length;
   var grid = document.getElementById("cgrid");
   grid.innerHTML = "";
+  
+  if (list.length === 0) {
+    grid.innerHTML = "<div style='text-align:center;padding:40px;color:#a78bca'><div style='font-size:40px;margin-bottom:10px'>🔍</div><div>No se encontraron personajes</div></div>";
+    return;
+  }
+  
   for (var i = 0; i < list.length; i++) {
     var c = list[i];
     var div = document.createElement("div");
     div.className = "cc";
+    div.style.position = "relative";
     var img = gimg(c.k);
     if (img) {
       var im = document.createElement("img");
@@ -701,6 +746,13 @@ function drawGrid(cat) {
       em.className = "cemj";
       em.textContent = c.e;
       div.appendChild(em);
+    }
+    // Badge +18
+    if (c.adult) {
+      var badge = document.createElement("div");
+      badge.style.cssText = "position:absolute;top:6px;right:6px;background:#ef4444;color:white;font-size:10px;font-weight:800;border-radius:6px;padding:2px 5px;z-index:2";
+      badge.textContent = "+18";
+      div.appendChild(badge);
     }
     var ov = document.createElement("div");
     ov.className = "cov";
@@ -1164,6 +1216,23 @@ document.getElementById("fb-f").addEventListener("click", function() {
 document.getElementById("fb-fa").addEventListener("click", function() {
   document.querySelectorAll(".fb").forEach(function(b) { b.classList.remove("on"); });
   this.classList.add("on"); drawGrid("fa");
+});
+document.getElementById("fb-rom").addEventListener("click", function() {
+  document.querySelectorAll(".fb").forEach(function(b) { b.classList.remove("on"); });
+  this.classList.add("on"); drawGrid("rom");
+});
+document.getElementById("fb-pop").addEventListener("click", function() {
+  document.querySelectorAll(".fb").forEach(function(b) { b.classList.remove("on"); });
+  this.classList.add("on"); drawGrid("pop");
+});
+document.getElementById("fb-new").addEventListener("click", function() {
+  document.querySelectorAll(".fb").forEach(function(b) { b.classList.remove("on"); });
+  this.classList.add("on"); drawGrid("new");
+});
+
+// Búsqueda en tiempo real
+document.getElementById("search-input").addEventListener("input", function() {
+  drawGrid(selCat, this.value.toLowerCase());
 });
 
 // Cerrar modales al tocar afuera
