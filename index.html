@@ -1741,8 +1741,9 @@ async function generateNovel() {
     step.textContent = steps[0].text;
     bar.style.width = steps[0].pct;
     
+    var userNameStruct = currentUser ? currentUser.name : 'la protagonista';
     var structurePrompt = 'Crea una novela de ' + genre + ' en español titulada "' + title + '". ' +
-      'Personaje principal: ' + (charName || 'el protagonista') + '. ' +
+      'Personaje principal: ' + (charName || 'el protagonista') + '. La chica se llama ' + userNameStruct + '. ' +
       'Historia base: ' + desc + '. ' +
       'Genera exactamente 15 títulos de capítulos creativos. ' +
       'Responde SOLO en formato JSON: {"chapters":[{"title":"titulo cap 1"},{"title":"titulo cap 2"}...]} ' +
@@ -1782,8 +1783,10 @@ async function generateNovel() {
       bar.style.width = pct + '%';
       
       var chapTitle = structure.chapters[batch].title;
+      var userName = currentUser ? currentUser.name : 'la protagonista';
       var chapPrompt = 'Escribe el capitulo ' + (batch+1) + ' titulado "' + chapTitle + '" de la novela "' + title + '". ' +
-        'Genero: ' + genre + '. Personaje: ' + (charName || 'protagonista') + '. ' +
+        'Genero: ' + genre + '. Personaje principal: ' + (charName || 'el protagonista') + '. ' +
+        'La chica se llama EXACTAMENTE ' + userName + ' — usa ese nombre siempre, NUNCA uses otro nombre para ella. ' +
         'Escribe exactamente 3 parrafos con dialogos y emociones. Solo el contenido, en espanol.';
       
       var chapContent = 'Capitulo en desarrollo...';
