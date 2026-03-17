@@ -276,14 +276,22 @@ body{background:#0a0010;color:#f3e8ff;font-family:Nunito,sans-serif;max-width:43
   </select>
 </div>
 
-<div style="margin-top:16px">
+<div style="margin-top:16px" id="adult-section">
   <div style="font-size:13px;font-weight:800;color:#c084fc;margin-bottom:8px">🔞 Contenido adulto</div>
-  <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(147,51,234,0.1);border-radius:12px;padding:12px">
-    <span style="font-size:13px">Activar contenido adulto</span>
-    <label style="position:relative;display:inline-block;width:44px;height:24px">
-      <input type="checkbox" id="cfg-adult" style="opacity:0;width:0;height:0">
-      <span id="toggle-adult" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#4c1d95;border-radius:24px;transition:.3s"></span>
-    </label>
+  <div id="adult-blocked" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:12px;font-size:12px;color:#f87171;text-align:center">
+    🔒 Bloqueado — Solo disponible para mayores de 18 años
+  </div>
+  <div id="adult-toggle-wrap" style="display:none">
+    <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:10px;margin-bottom:8px;font-size:11px;color:#f87171;text-align:center">
+      ⚠️ Esta sección contiene contenido para adultos (+18)
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(147,51,234,0.1);border-radius:12px;padding:12px">
+      <span style="font-size:13px">Activar contenido adulto</span>
+      <label style="position:relative;display:inline-block;width:44px;height:24px">
+        <input type="checkbox" id="cfg-adult" style="opacity:0;width:0;height:0">
+        <span id="toggle-adult" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#4c1d95;border-radius:24px;transition:.3s"></span>
+      </label>
+    </div>
   </div>
 </div>
 
@@ -523,10 +531,10 @@ var chars = [
   {id:2, n:"Sora Hikari", d:"El Idol Energetico", c:"m", e:"\u2728", k:"i2",
    p:"Siempre sonriente y lleno de energia. Oculta una soledad profunda bajo su imagen de estrella.",
    g:"*Sora te descubre y su rostro se ilumina*\n\nOye! Justo pensaba en ti. Tienes un momento?"},
-  {id:3, n:"Kaelith", d:"El Principe Elfico", c:"fa", e:"\uD83E\uDDDD", k:"i3",
+  {id:3, n:"Kaelith", adult:true, d:"El Principe Elfico", c:"fa", e:"\uD83E\uDDDD", k:"i3",
    p:"Elegante, sabio y misterioso. Habla poco pero cada palabra tiene peso.",
    g:"*Kaelith te observa con sus ojos plateados*\n\nCurioso... raramente alguien llega hasta aqui."},
-  {id:4, n:"Dante", d:"Vampiro Moderno", c:"fa", e:"\uD83E\uDDDB", k:"i4",
+  {id:4, n:"Dante", adult:true, d:"Vampiro Moderno", c:"fa", e:"\uD83E\uDDDB", k:"i4",
    p:"Elegante y seductor, con siglos de experiencia. Le cuesta conectar emocionalmente.",
    g:"*Dante eleva su copa con una sonrisa*\n\nQue sorpresa tan agradable. Hace mucho que nadie me visita."},
   {id:5, n:"Yuki Himura", d:"El Estratega Frio", c:"m", e:"\uD83D\uDDE1\uFE0F", k:"i5",
@@ -538,10 +546,10 @@ var chars = [
   {id:7, n:"Sakura Miyamoto", d:"La Guerrera del Caos", c:"f", e:"\uD83C\uDF38", k:"i7",
    p:"Fuerte e independiente pero con un corazon enorme.",
    g:"*Sakura te mira antes de apartar la vista*\n\n...Sigues aqui. Bien. Sientate, entonces."},
-  {id:8, n:"Shin Nakano", d:"El Bad Boy Misterioso", c:"m", e:"\uD83D\uDDA4", k:"i8",
+  {id:8, n:"Shin Nakano", adult:true, d:"El Bad Boy Misterioso", c:"m", e:"\uD83D\uDDA4", k:"i8",
    p:"Rebelde en la superficie, herido por dentro.",
    g:"*Shin te mira de reojo*\n\nQue? Viniste a molestar otra vez?"},
-  {id:9, n:"Akira Kurosawa", d:"El CEO Misterioso", c:"m", e:"\uD83D\uDCBC", k:"i9",
+  {id:9, n:"Akira Kurosawa", adult:true, d:"El CEO Misterioso", c:"m", e:"\uD83D\uDCBC", k:"i9",
    p:"Poderoso y controlado. Contigo algo cambia que no puede controlar.",
    g:"*Akira te dedica una mirada penetrante*\n\nLlegas tarde. Aunque... valio la espera."},
   {id:10, n:"Luna Estrella", d:"La Maga del Hielo", c:"f", e:"\uD83C\uDF19", k:"i10",
@@ -670,7 +678,11 @@ function show(id) { document.getElementById(id).classList.add("on"); }
 function hide(id) { document.getElementById(id).classList.remove("on"); }
 
 function drawGrid(cat) {
-  var all = chars.concat(uchars);
+  var isAdult = currentUser && currentUser.age >= 18 && userConfig.adult;
+  var all = chars.concat(uchars).filter(function(c) {
+    if (c.adult && !isAdult) return false;
+    return true;
+  });
   var list = cat === "all" ? all : all.filter(function(c) { return c.c === cat; });
   document.getElementById("cnt").textContent = list.length;
   var grid = document.getElementById("cgrid");
@@ -1404,6 +1416,26 @@ function loadProfile() {
   updateToggle('toggle-adult', userConfig.adult);
   updateToggle('toggle-violence', userConfig.violence);
   updateToggle('toggle-language', userConfig.language);
+  
+  // Mostrar/ocultar contenido adulto según edad
+  var isAdult = currentUser && currentUser.age >= 18;
+  var blocked = document.getElementById('adult-blocked');
+  var toggleWrap = document.getElementById('adult-toggle-wrap');
+  if (blocked && toggleWrap) {
+    if (isAdult) {
+      blocked.style.display = 'none';
+      toggleWrap.style.display = 'block';
+    } else {
+      blocked.style.display = 'block';
+      toggleWrap.style.display = 'none';
+    }
+  }
+  
+  // Actualizar nombre
+  if (currentUser) {
+    var pname = document.getElementById('pinfo-name');
+    if (pname) pname.textContent = currentUser.name;
+  }
 }
 
 function updateToggle(id, active) {
@@ -1422,6 +1454,20 @@ function calcAge(dob) {
   var m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
   return age;
+}
+
+function showWelcome(name, age) {
+  // Crear overlay de bienvenida
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9998;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box';
+  overlay.innerHTML = '<div style="background:linear-gradient(135deg,#1a0035,#2d0060);border:1px solid rgba(147,51,234,0.5);border-radius:24px;padding:32px;text-align:center;max-width:320px;width:100%">' +
+    '<div style="font-size:48px;margin-bottom:12px">' + (age >= 18 ? '✨' : '🌟') + '</div>' +
+    '<div style="font-size:22px;font-weight:900;color:#e9d5ff;margin-bottom:8px">¡Bienvenida, ' + name + '!</div>' +
+    '<div style="font-size:14px;color:#a78bca;margin-bottom:20px">' + (age >= 18 ? 'Tienes acceso completo a MG AI 💜' : 'Bienvenida a MG AI 🌸 Tu experiencia está adaptada para ti.') + '</div>' +
+    (age < 18 ? '<div style="background:rgba(147,51,234,0.15);border:1px solid rgba(147,51,234,0.3);border-radius:12px;padding:10px;font-size:12px;color:#c084fc;margin-bottom:16px">🔒 Contenido adulto restringido para tu seguridad</div>' : '') +
+    '<button onclick="this.parentElement.parentElement.remove()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#9333ea);color:white;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:800;cursor:pointer">¡Explorar MG AI! 🚀</button>' +
+    '</div>';
+  document.body.appendChild(overlay);
 }
 
 function checkLogin() {
@@ -1489,11 +1535,8 @@ function doFinish() {
   if (uname) uname.value = currentUser.name;
   applyAgeRestrictions();
   
-  if (age < 18) {
-    alert('Bienvenida ' + currentUser.name + '! Como eres menor de 18, el contenido adulto estará restringido.');
-  } else {
-    alert('¡Bienvenida a MG AI, ' + currentUser.name + '! 💜');
-  }
+  // Mostrar bienvenida bonita
+  showWelcome(currentUser.name, age);
 }
 
 function doLogin() {
@@ -1856,12 +1899,31 @@ document.getElementById("mcl-config").addEventListener("click", function() { hid
 });
 
 document.getElementById("btn-saveconfig").addEventListener("click", function() {
-  userConfig.adult = document.getElementById("cfg-adult").checked;
+  var wantsAdult = document.getElementById("cfg-adult").checked;
+  
+  // Verificar edad para contenido adulto
+  if (wantsAdult && currentUser && currentUser.age < 18) {
+    alert("❌ Debes tener 18 años o más para activar contenido adulto.");
+    document.getElementById("cfg-adult").checked = false;
+    updateToggle("toggle-adult", false);
+    wantsAdult = false;
+  } else if (wantsAdult && !userConfig.adult) {
+    // Mostrar advertencia
+    var ok = confirm("⚠️ ADVERTENCIA\n\nEsta sección contiene contenido para adultos (+18).\n\nDebes tener 18 años o más para continuar.\n\n¿Confirmas que eres mayor de 18?");
+    if (!ok) {
+      document.getElementById("cfg-adult").checked = false;
+      updateToggle("toggle-adult", false);
+      wantsAdult = false;
+    }
+  }
+  
+  userConfig.adult = wantsAdult;
   userConfig.violence = document.getElementById("cfg-violence").checked;
   userConfig.language = document.getElementById("cfg-language").checked;
   userConfig.lang = document.getElementById("cfg-lang").value;
   localStorage.setItem("mgai_config", JSON.stringify(userConfig));
   hide("m-config");
+  drawGrid(selCat);
   alert("✅ Configuración guardada!");
 });
 
