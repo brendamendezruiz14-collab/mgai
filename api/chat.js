@@ -60,7 +60,7 @@ Maximo 3 parrafos. Respuestas concisas pero emotivas.`
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer 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'
+        'Authorization': 'Bearer ' + process.env.GROQ_KEY
       },
       body: JSON.stringify({
         model: groqModel,
