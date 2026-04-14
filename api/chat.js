@@ -107,18 +107,36 @@ Cada respuesta DEBE incluir al menos 5 de estos elementos:
       if (groqData.choices && groqData.choices[0]) {
         return res.status(200).json(groqData);
       }
+      console.error('Groq data:', JSON.stringify(groqData).substring(0, 200));
       throw new Error('Groq no respondio');
 
     } catch (groqErr) {
       console.log('Groq fallo, usando Gemini:', groqErr.message);
 
       // Respaldo: Gemini con safety OFF
-      const geminiMessages = finalMessages.map(function(m) {
-        return {
-          role: m.role === 'assistant' ? 'model' : m.role === 'system' ? 'user' : 'user',
-          parts: [{ text: m.content }]
-        };
+      // Gemini no acepta role:system — lo convertimos a texto en el primer mensaje
+      var systemText = '';
+      var chatMessages = [];
+      finalMessages.forEach(function(m) {
+        if (m.role === 'system') {
+          systemText = m.content;
+        } else {
+          chatMessages.push({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }]
+          });
+        }
       });
+      
+      // Si no hay mensajes de chat, agregar uno vacío
+      if (chatMessages.length === 0) {
+        chatMessages.push({ role: 'user', parts: [{ text: 'hola' }] });
+      }
+      
+      // Agregar el sistema como prefijo del primer mensaje usuario
+      if (systemText && chatMessages[0].role === 'user') {
+        chatMessages[0].parts[0].text = systemText + '\n\n' + chatMessages[0].parts[0].text;
+      }
 
       const geminiResponse = await fetch(
         'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + process.env.GEMINI_KEY,
@@ -126,7 +144,7 @@ Cada respuesta DEBE incluir al menos 5 de estos elementos:
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: geminiMessages,
+            contents: chatMessages,
             safetySettings: [
               { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
               { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
@@ -143,14 +161,22 @@ Cada respuesta DEBE incluir al menos 5 de estos elementos:
 
       const geminiData = await geminiResponse.json();
 
+      console.log('Gemini respuesta:', JSON.stringify(geminiData).substring(0, 200));
+      
       if (geminiData.candidates && geminiData.candidates[0]) {
         const geminiText = geminiData.candidates[0].content.parts[0].text;
         return res.status(200).json({
           choices: [{ message: { content: geminiText } }]
         });
       }
+      
+      // Ver si hay error de Gemini
+      if (geminiData.error) {
+        console.error('Gemini error detalle:', JSON.stringify(geminiData.error));
+        throw new Error('Gemini error: ' + geminiData.error.message);
+      }
 
-      throw new Error('Gemini tampoco respondio');
+      throw new Error('Gemini tampoco respondio - respuesta: ' + JSON.stringify(geminiData).substring(0, 100));
     }
 
   } catch (err) {
